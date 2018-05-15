@@ -34,16 +34,12 @@ for (name in names(mimputation)) {
 
 titanic_cleaned <- complete(average_mimp)
 
-# Define UI for app that draws a histogram ----
 ui <- fluidPage(
   
-  # App title ----
   titlePanel("Machine Learning with the Titanic Dataset"),
   
-  # Sidebar layout with input and output definitions ----
   sidebarLayout(
     
-    # Sidebar panel for inputs ----
     sidebarPanel(
       p("Click the button below to train the algorithm on a random sample of the data."),
       actionButton("train", "Train"),
@@ -74,7 +70,6 @@ ui <- fluidPage(
   )
 )
 
-# Define server logic required to draw a histogram ----
 server <- function(input, output) {
   
   v <- reactiveValues(accuracy=NULL, fit=NULL, prediction=NULL)
