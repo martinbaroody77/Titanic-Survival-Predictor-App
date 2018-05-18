@@ -16,7 +16,7 @@ for (i in 1:nrow(titanic_cleaned)) {
 
 titanic_cleaned$sex<- factor(titanic_cleaned$sex, levels=c("male", "female"))
 titanic_cleaned$sex <- as.numeric(titanic_cleaned$sex)
-titanic_cleaned$cabin <- factor(titanic_cleaned$cabin, levels=c("A", "B", "C", "D", "E", "F", "G"))
+titanic_cleaned$cabin <- factor(titanic_cleaned$cabin, levels=c("G", "F", "E", "D", "A", "C", "B"))
 titanic_cleaned$cabin <- as.numeric(titanic_cleaned$cabin)
 
 mimputation <- mice(titanic_cleaned)
@@ -104,7 +104,7 @@ parch_graph <- (ggplot(parch_df, aes(x=parch, y=average_survival)) + geom_point(
                   labs(x="# Parents/Children", y = "Average Survival"))
 
 
-cabin_vec <- 1:7
+cabin_vec <- c(5, 7, 6, 4, 3, 2, 1)
 cabin_avg <- vector(length = length(cabin_vec))
 counter_cabin <- 1
 for (cab in cabin_vec) {
@@ -112,7 +112,8 @@ for (cab in cabin_vec) {
   cabin_avg[counter_cabin] <- mean(specific_cabin$survived)
   counter_cabin <- counter_cabin + 1
 }
-cabin_df <- data.frame("cabin" = cabin_vec, "average_survival" = cabin_avg)
+scale = 1:7
+cabin_df <- data.frame("cabin" = scale, "average_survival" = cabin_avg)
 cabin_graph <- (ggplot(cabin_df, aes(x=cabin, y=average_survival)) + geom_bar(stat="identity") + 
                   scale_x_continuous(breaks=c(1, 2, 3, 4, 5, 6, 7), 
                                      labels=c("A", "B", "C", "D", "E", "F", "G")) +
@@ -163,19 +164,19 @@ ui <- fluidPage(
       plotOutput("age_plot"),
       fluidRow(
         sliderInput("sibsp", label="Siblings/Spouses", value=0, min=0, max=10),
-        actionButton("sibsp_button", "Click me to visualize relationship between age and number of siblings/spouses 
-                     on board")
+        actionButton("sibsp_button", "Click me to visualize relationship between number of siblings/spouses on board
+                     and survival")
       ),
       plotOutput("sibsp_plot"),
       fluidRow(
         sliderInput("parch", label="Parents/Children", value=0, min=0, max=10),
-        actionButton("parch_button", "Click me to visualize relationship between age and number of parents/children 
-                     on board")
+        actionButton("parch_button", "Click me to visualize relationship between number of parents/children 
+                     on board and survival")
       ),
       plotOutput("parch_plot"),
       fluidRow(
         selectInput("cabin", label="Cabin", choices=list("A", "B", "C", "D", "E", "F", "G")),
-        actionButton("cabin_button", "Click me to visualize relationship between age and the passenger's cabin")
+        actionButton("cabin_button", "Click me to visualize relationship between the passenger's cabin and survival")
         ),
       plotOutput("cabin_plot"),
       
