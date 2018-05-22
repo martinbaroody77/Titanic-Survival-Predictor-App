@@ -3,21 +3,22 @@ library(mice)
 library(ggplot2)
 
 entire_titanic <- read.csv("data/titanic3.csv", stringsAsFactors = FALSE)
-titanic_cleaned <- entire_titanic[-(1310), -c(3, 8, 9, 11, 12, 13, 14)]
+# titanic_cleaned <- entire_titanic[-(1310), -c(3, 8, 9, 11, 12, 13, 14)]
+titanic_cleaned <- entire_titanic[-1310, -c(3, 8, 10, 11, 12, 13, 14)]
 
-for (i in 1:nrow(titanic_cleaned)) {
-  if (titanic_cleaned$cabin[i] != "") {
-    titanic_cleaned$cabin[i] <- substr(titanic_cleaned$cabin[i], 1, 1)
-  }
-  else {
-    titanic_cleaned$cabin[i] <- NA
-  }
-}
-
-titanic_cleaned$sex<- factor(titanic_cleaned$sex, levels=c("male", "female"))
-titanic_cleaned$sex <- as.numeric(titanic_cleaned$sex)
-titanic_cleaned$cabin <- factor(titanic_cleaned$cabin, levels=c("G", "F", "E", "D", "A", "C", "B"))
-titanic_cleaned$cabin <- as.numeric(titanic_cleaned$cabin)
+# for (i in 1:nrow(titanic_cleaned)) {
+#   if (titanic_cleaned$cabin[i] != "") {
+#     titanic_cleaned$cabin[i] <- substr(titanic_cleaned$cabin[i], 1, 1)
+#   }
+#   else {
+#     titanic_cleaned$cabin[i] <- NA
+#   }
+# }
+# 
+# titanic_cleaned$sex<- factor(titanic_cleaned$sex, levels=c("male", "female"))
+# titanic_cleaned$sex <- as.numeric(titanic_cleaned$sex)
+# titanic_cleaned$cabin <- factor(titanic_cleaned$cabin, levels=c("G", "F", "E", "D", "A", "C", "B"))
+# titanic_cleaned$cabin <- as.numeric(titanic_cleaned$cabin)
 
 mimputation <- mice(titanic_cleaned)
 
@@ -34,6 +35,8 @@ for (name in names(mimputation)) {
 
 titanic_cleaned <- complete(average_mimp)
 
+
+
 pclass_vec <- c(1, 2, 3)
 pclass_avg <- vector(length=3)
 for (i in 1:3) {
@@ -47,15 +50,14 @@ pclass_graph <- (ggplot(pclass_df, aes(x=pclass, y=average_survival)) + geom_poi
                                       labels=c("Higher chance of surviving", "Lower chance of surviving")) + 
                    labs(x="Passenger Class", y = "Average Survival"))
 
-sex_vec <- 1:2
+sex_vec <- c("male", "female")
 sex_avg <- vector(length = 2)
 for (i in 1:2) {
-  specific_sex <- subset(titanic_cleaned, sex == i)
+  specific_sex <- subset(titanic_cleaned, sex == sex_vec[i])
   sex_avg[i] <- mean(specific_sex$survived)
 }
 sex_df <- data.frame("sex" = sex_vec, "average_survival" = sex_avg)
-sex_graph <- (ggplot(sex_df, aes(x=sex, y=average_survival)) + geom_point() + geom_smooth(method="lm") + 
-                   scale_x_continuous(breaks=c(1, 2), labels = c("Male", "Female")) + 
+sex_graph <- (ggplot(sex_df, aes(x=sex, y=average_survival)) + geom_point(aes(size = 5)) +  
                    scale_y_continuous(breaks=c(0.2, 0.73), 
                                       labels=c("Lower chance of surviving", "Higher chance of surviving")) + 
                    labs(x="Gender", y = "Average Survival"))
@@ -104,22 +106,36 @@ parch_graph <- (ggplot(parch_df, aes(x=parch, y=average_survival)) + geom_point(
                   labs(x="# Parents/Children", y = "Average Survival"))
 
 
-cabin_vec <- c(5, 7, 6, 4, 3, 2, 1)
-cabin_avg <- vector(length = length(cabin_vec))
-counter_cabin <- 1
-for (cab in cabin_vec) {
-  specific_cabin <- subset(titanic_cleaned, cabin == cab)
-  cabin_avg[counter_cabin] <- mean(specific_cabin$survived)
-  counter_cabin <- counter_cabin + 1
+fare_vec <- as.double(levels(factor(titanic_cleaned$fare)))
+fare_avg <- vector(length = length(fare_vec))
+counter_fare <- 1
+for (fare_ in fare_vec) {
+  specific_fare <- subset(titanic_cleaned, fare == fare_)
+  fare_avg[counter_fare] <- mean(specific_fare$survived)
+  counter_fare <- counter_fare + 1
 }
-scale = 1:7
-cabin_df <- data.frame("cabin" = scale, "average_survival" = cabin_avg)
-cabin_graph <- (ggplot(cabin_df, aes(x=cabin, y=average_survival)) + geom_bar(stat="identity") + 
-                  scale_x_continuous(breaks=c(1, 2, 3, 4, 5, 6, 7), 
-                                     labels=c("A", "B", "C", "D", "E", "F", "G")) +
-                  scale_y_continuous(breaks=c(0.1, 0.7), 
-                                     labels=c("Lower chance of surviving", "Higher chance of surviving")) + 
-                  labs(x="Cabin", y = "Average Survival"))
+fare_df <- data.frame("fare" = fare_vec, "average_survival" = fare_avg)
+fare_graph <- (ggplot(fare_df, aes(x=fare, y=average_survival)) + geom_point() + geom_smooth() + 
+                scale_y_continuous(breaks=c(0, 1), 
+                                   labels=c("Lower chance of surviving", "Higher chance of surviving")) + 
+                labs(x="fare", y = "Average Survival"))
+
+# cabin_vec <- c(5, 7, 6, 4, 3, 2, 1)
+# cabin_avg <- vector(length = length(cabin_vec))
+# counter_cabin <- 1
+# for (cab in cabin_vec) {
+#   specific_cabin <- subset(titanic_cleaned, cabin == cab)
+#   cabin_avg[counter_cabin] <- mean(specific_cabin$survived)
+#   counter_cabin <- counter_cabin + 1
+# }
+# scale = 1:7
+# cabin_df <- data.frame("cabin" = scale, "average_survival" = cabin_avg)
+# cabin_graph <- (ggplot(cabin_df, aes(x=cabin, y=average_survival)) + geom_bar(stat="identity") + 
+#                   scale_x_continuous(breaks=c(1, 2, 3, 4, 5, 6, 7), 
+#                                      labels=c("A", "B", "C", "D", "E", "F", "G")) +
+#                   scale_y_continuous(breaks=c(0.1, 0.7), 
+#                                      labels=c("Lower chance of surviving", "Higher chance of surviving")) + 
+#                   labs(x="Cabin", y = "Average Survival"))
 
 
 
@@ -153,7 +169,7 @@ ui <- fluidPage(
       ),
       plotOutput("pclass_plot"),
       fluidRow(
-        selectInput("sex", label="Gender", choices=list("M", "F")),
+        selectInput("sex", label="Gender", choices=list("male", "female")),
         actionButton("sex_button", "Click me to visualize relationship between gender and survival")
       ),
       plotOutput("sex_plot"),
@@ -174,12 +190,17 @@ ui <- fluidPage(
                      on board and survival")
       ),
       plotOutput("parch_plot"),
+#       fluidRow(
+#         selectInput("cabin", label="Cabin", choices=list("A", "B", "C", "D", "E", "F", "G")),
+#         actionButton("cabin_button", "Click me to visualize relationship between the passenger's cabin and survival")
+#         ),
+#       plotOutput("cabin_plot"),
+
       fluidRow(
-        selectInput("cabin", label="Cabin", choices=list("A", "B", "C", "D", "E", "F", "G")),
-        actionButton("cabin_button", "Click me to visualize relationship between the passenger's cabin and survival")
-        ),
-      plotOutput("cabin_plot"),
-      
+        numericInput("fare", label="Fare", value=50, min=0, max=520, step=1),
+        actionButton("fare_button", "Click me to visualize relationship between fare to board the ship and survival")
+      ),
+      plotOutput("fare_plot"),
       
       actionButton("survival_button", "Calculate survival!"),
       textOutput("survived")
@@ -190,7 +211,7 @@ ui <- fluidPage(
 server <- function(input, output) {
   
   v <- reactiveValues(accuracy=NULL, fit=NULL, prediction=NULL, pclass_graph=FALSE, sex_graph=FALSE, age_graph=FALSE,
-                      sibsp_graph=FALSE, parch_graph = FALSE, cabin_graph=FALSE)
+                      sibsp_graph=FALSE, parch_graph = FALSE, fare_graph=FALSE, cabin_graph=FALSE)
   
   observeEvent(input$train, {
     
@@ -200,7 +221,7 @@ server <- function(input, output) {
     
     # create a model based on the training data and predict
     
-    fit <- glm(survived~pclass+sex+age+sibsp+parch+cabin, data=titanic_cleaned, family=binomial())
+    fit <- glm(survived~., data=titanic_cleaned, family=binomial())
     v$fit <- fit
     predictions <- predict(fit, test_set, type="response")
     
@@ -239,39 +260,32 @@ server <- function(input, output) {
   observeEvent(input$survival_button, {
     if (!is.null(v$fit)) {
       
-      sex_int <- 0
-      if (input$sex == "M") {
-        sex_int <- 1
-      }
-      else if (input$sex == "F") {
-        sex_int <- 2
-      }
       
-      cabin_int <- 0
-      if(input$cabin == "A") {
-        cabin_int <- 1
-      }
-      else if(input$cabin == "B") {
-        cabin_int <- 2
-      }
-      else if(input$cabin == "C") {
-        cabin_int <- 3
-      }
-      else if(input$cabin == "D") {
-        cabin_int <- 4
-      }
-      else if(input$cabin == "E") {
-        cabin_int <- 5
-      }
-      else if(input$cabin == "F") {
-        cabin_int <- 6
-      }
-      else if(input$cabin == "G") {
-        cabin_int <- 7
-      }
-      
-      data_to_predict <- data.frame("pclass"=input$pclass, "sex"=sex_int, "age"=input$age, "sibsp"=input$sibsp, 
-                                    "parch"=input$parch, "cabin"=cabin_int)
+#       cabin_int <- 0
+#       if(input$cabin == "A") {
+#         cabin_int <- 1
+#       }
+#       else if(input$cabin == "B") {
+#         cabin_int <- 2
+#       }
+#       else if(input$cabin == "C") {
+#         cabin_int <- 3
+#       }
+#       else if(input$cabin == "D") {
+#         cabin_int <- 4
+#       }
+#       else if(input$cabin == "E") {
+#         cabin_int <- 5
+#       }
+#       else if(input$cabin == "F") {
+#         cabin_int <- 6
+#       }
+#       else if(input$cabin == "G") {
+#         cabin_int <- 7
+#       }
+#       
+      data_to_predict <- data.frame("pclass"=input$pclass, "sex"=input$sex, "age"=input$age, "sibsp"=input$sibsp, 
+                                    "parch"=input$parch, "fare"=input$fare)
       prediction_val <- predict(v$fit, data_to_predict, type="response")
       if(prediction_val[1] > 0.55) {
         v$prediction <- 1
@@ -375,21 +389,38 @@ server <- function(input, output) {
     }
   })
   
-  observeEvent(input$cabin_button, {
-    if (v$cabin_graph == FALSE) {
-      v$cabin_graph <- TRUE
+  observeEvent(input$fare_button, {
+    if (v$fare_graph == FALSE) {
+      v$fare_graph <- TRUE
     }
-    else if (v$cabin_graph == TRUE) {
-      v$cabin_graph <- FALSE
+    else if (v$fare_graph == TRUE) {
+      v$fare_graph <- FALSE
     }
     
   })
   
-  output$cabin_plot <- renderPlot({
-    if(v$cabin_graph == TRUE) {
-      cabin_graph
+  output$fare_plot <- renderPlot({
+    if(v$fare_graph == TRUE) {
+      fare_graph
     }
   })
+  
+  
+#   observeEvent(input$cabin_button, {
+#     if (v$cabin_graph == FALSE) {
+#       v$cabin_graph <- TRUE
+#     }
+#     else if (v$cabin_graph == TRUE) {
+#       v$cabin_graph <- FALSE
+#     }
+#     
+#   })
+#   
+#   output$cabin_plot <- renderPlot({
+#     if(v$cabin_graph == TRUE) {
+#       cabin_graph
+#     }
+#   })
 }
 
 # Create Shiny app ----
